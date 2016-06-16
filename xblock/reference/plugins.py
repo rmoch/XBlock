@@ -20,14 +20,6 @@ except ImportError:
         '''
         pass
 
-try:
-    from djpyfs import djpyfs  # pylint: disable=import-error
-except ImportError:
-    djpyfs = None  # pylint: disable=invalid-name
-except ImproperlyConfigured:
-    print "Warning! Django is not correctly configured."
-    djpyfs = None  # pylint: disable=invalid-name
-
 from xblock.fields import Field, NO_CACHE_VALUE
 from xblock.fields import scope_key
 
@@ -190,6 +182,13 @@ class FSService(Service):
         Get the filesystem for the field specified in 'instance' and the
         xblock in 'xblock' It is locally scoped.
         """
+        try:
+            from djpyfs import djpyfs  # pylint: disable=import-error
+        except ImportError:
+            djpyfs = None  # pylint: disable=invalid-name
+        except ImproperlyConfigured:
+            print "Warning! Django is not correctly configured."
+            djpyfs = None  # pylint: disable=invalid-name
 
         # TODO: Get xblock from context, once the plumbing is piped through
         if djpyfs:
