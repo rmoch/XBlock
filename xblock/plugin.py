@@ -8,12 +8,18 @@ import functools
 import itertools
 import logging
 import pkg_resources
+
 from xblock.internal import class_lazy
+
+from .utils import component_factory
 
 log = logging.getLogger(__name__)
 
 PLUGIN_CACHE = {}
 
+XBLOCKS_FACTORY = {}
+def configure_xblock_factory(settings):
+    XBLOCKS_FACTORY["value"] = settings
 
 class PluginMissingError(Exception):
     """Raised when trying to load a plugin from an entry_point that cannot be found."""
@@ -97,7 +103,18 @@ class Plugin(object):
         if too many plugins are found
         """
         identifier = identifier.lower()
+
+        if identifier.startswith('lti_consumer_'):
+            import ipdb; ipdb.set_trace()
+
+        if XBLOCKS_FACTORY:
+            new_component = component_factory(XBLOCKS_FACTORY["value"], identifier)
+            if new_component:
+                return new_component
+
+
         key = (cls.entry_point, identifier)
+
         if key not in PLUGIN_CACHE:
 
             if select is None:
@@ -135,6 +152,7 @@ class Plugin(object):
         (e.g. on startup or first page load), and in what
         contexts. Hence, the flag.
         """
+        #import ipdb; ipdb.set_trace()
         all_classes = itertools.chain(
             pkg_resources.iter_entry_points(cls.entry_point),
             (entry_point for identifier, entry_point in cls.extra_entry_points),
